@@ -1,6 +1,9 @@
 package com.fossgalaxy.object;
 
 
+import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
+import com.fossgalaxy.object.exceptions.TypeMismatchException;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -14,7 +17,7 @@ public class TestObjectFinder {
     private static ObjectFinder<TestObject> finder;
 
     @BeforeClass
-    public static void setup(){
+    public  static void setup(){
         finder = new ObjectFinder<>(TestObject.class);
     }
 
@@ -44,6 +47,17 @@ public class TestObjectFinder {
     public void testDelegatedFunction(){
         TestObject testObject = finder.buildObject("WithUnknown", "Name", "Peanut");
         assertNotNull(testObject);
+    }
+
+
+    @Test(expected = TypeMismatchException.class)
+    public void testDelegatedFunctionWrongType(){
+        TestObject testObject = finder.buildObject("WithUnknownWrongType", "Name", "Peanut");
+    }
+
+    @Test(expected = IncorrectFunctionName.class)
+    public void testWrongFunctionDelegated(){
+        TestObject testObject = finder.buildObject("WithUnknownWrongFunction", "Name", "Peanut");
     }
 
 }

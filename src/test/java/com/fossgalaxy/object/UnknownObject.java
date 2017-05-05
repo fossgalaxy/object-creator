@@ -5,17 +5,17 @@ import org.junit.Test;
 /**
  * Created by piers on 05/05/17.
  */
-public class UnkownObject {
+public class UnknownObject {
 
     private final String name;
 
-    public UnkownObject(String name) {
+    public UnknownObject(String name) {
         this.name = name;
     }
 
     @Override
     public String toString() {
-        return "UnkownObject{" +
+        return "UnknownObject{" +
                 "name='" + name + '\'' +
                 '}';
     }
