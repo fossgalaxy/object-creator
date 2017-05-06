@@ -99,7 +99,7 @@ public final class ObjectFinder<T> {
 
         ObjectFactory<T> factory = knownFactories.get(name);
         if (factory == null) {
-            throw new IllegalArgumentException("Unkown factory type: " + name);
+            throw new IllegalArgumentException("Unknown factory type: " + name);
         }
 
         return factory.build(args);
