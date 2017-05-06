@@ -3,8 +3,10 @@ package com.fossgalaxy.object;
 import com.fossgalaxy.object.annotations.ObjectDef;
 import com.fossgalaxy.object.annotations.ObjectDefStatic;
 import com.fossgalaxy.object.annotations.Parameter;
-import com.fossgalaxy.object.exceptions.*;
-import com.sun.org.apache.xpath.internal.operations.Mod;
+import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
+import com.fossgalaxy.object.exceptions.NonPublicMethodAnnotatedException;
+import com.fossgalaxy.object.exceptions.NonStaticMethodAnnotatedException;
+import com.fossgalaxy.object.exceptions.TypeMismatchException;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -30,6 +32,14 @@ public final class ObjectFinder<T> {
 
     private boolean hasScanned;
 
+    private static final String PARAM_START = "[";
+    private static final String PARAM_END = "]";
+    private static final String PARAM_SEPARATOR = ":";
+
+    /**
+     * Constructor for an ObjectFinder
+     * @param clazz The class of the type and supertype of objects you wish to build
+     */
     public ObjectFinder(Class<T> clazz) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
@@ -66,10 +76,51 @@ public final class ObjectFinder<T> {
         converters.put(boolean.class, Boolean::parseBoolean);
         converters.put(boolean[].class, Converters::parseBooleanArray);
         converters.put(Boolean[].class, Converters::parseBooleanClassArray);
+        converters.put(clazz, this::buildObject);
     }
 
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
         converters.put(clazz, converter);
+    }
+
+
+    public T buildObject(String data){
+        if(data.contains(PARAM_START) && data.contains(PARAM_END)){
+            String args = data.substring(data.indexOf(PARAM_START) + 1, data.lastIndexOf(PARAM_END));
+            String[] splitArgs = splitArgs(args);
+            String firstPart = data.substring(0, data.indexOf(PARAM_START));
+            return buildObject(firstPart, splitArgs);
+        }
+        // Necessary for no args to have a zero length array of String as args
+        return buildObject(data, new String[0]);
+    }
+
+    private static String[] splitArgs(String args) {
+        int opens = 0;
+        ArrayList<String> partsFound = new ArrayList<>();
+
+        String currentParam = "";
+
+        for (int index = 0; index < args.length(); index++) {
+            char c = args.charAt(index);
+            // handle params open/close
+            if(c == PARAM_START.charAt(0)){
+                opens++;
+            }else if(c == PARAM_END.charAt(0)){
+                opens--;
+            }else if(c == PARAM_SEPARATOR.charAt(0)){
+                if(opens == 0){
+                    partsFound.add(currentParam);
+                    currentParam = "";
+                    continue;
+                }
+            }
+            currentParam += c;
+        }
+        if(!currentParam.equals("")){
+            partsFound.add(currentParam);
+        }
+        return partsFound.toArray(new String[partsFound.size()]);
     }
 
     public T buildObject(String name, String... args) {
@@ -200,8 +251,6 @@ public final class ObjectFinder<T> {
         }
 
         return new ConstructorFactory<>(objectClazz, bestMatch, null);
-
-
     }
 
     private void logException(String name, RuntimeException exception) {
