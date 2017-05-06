@@ -40,46 +40,32 @@ public final class ObjectFinder<T> {
         buildConverters();
     }
 
-    private static int[] parseIntArray(String data) {
-        String[] args = data.split(",");
-        int[] argInt = new int[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Integer.parseInt(args[i]);
-        }
-        return argInt;
-    }
 
-    private static double[] parseDoubleArray(String data) {
-        String[] args = data.split(",");
-        double[] argInt = new double[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Double.parseDouble(args[i]);
-        }
-        return argInt;
-    }
-
-    private static float[] parseFloatArray(String data) {
-        String[] args = data.split(",");
-        float[] argInt = new float[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Float.parseFloat(args[i]);
-        }
-        return argInt;
-    }
 
     private void buildConverters() {
         converters.put(String.class, Function.identity());
+        converters.put(String[].class, Converters::parseStringArray);
+
         converters.put(Integer.class, Integer::parseInt);
         converters.put(int.class, Integer::parseInt);
+        converters.put(int[].class, Converters::parseIntArray);
+        converters.put(Integer[].class, Converters::parseIntegerArray);
+
         converters.put(Double.class, Double::parseDouble);
         converters.put(double.class, Double::parseDouble);
+        converters.put(double[].class, Converters::parseDoubleArray);
+        converters.put(Double[].class, Converters::parseDoubleClassArray);
+
         converters.put(Float.class, Float::parseFloat);
         converters.put(float.class, Float::parseFloat);
+        converters.put(float[].class, Converters::parseFloatArray);
+        converters.put(Float[].class, Converters::parseFloatClassArray);
+
+
         converters.put(Boolean.class, Boolean::parseBoolean);
         converters.put(boolean.class, Boolean::parseBoolean);
-        converters.put(int[].class, ObjectFinder::parseIntArray);
-        converters.put(double[].class, ObjectFinder::parseDoubleArray);
-        converters.put(float[].class, ObjectFinder::parseFloatArray);
+        converters.put(boolean[].class, Converters::parseBooleanArray);
+        converters.put(Boolean[].class, Converters::parseBooleanClassArray);
     }
 
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
