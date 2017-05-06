@@ -65,4 +65,14 @@ public class TestObject {
                 "name='" + name + '\'' +
                 '}';
     }
+
+    @ObjectDefStatic("WithNonPublicMethod")
+    private static TestObject createObjectNonPublic(String name){
+        return new TestObject(name);
+    }
+
+    @ObjectDefStatic("WithNonStaticMethod")
+    public TestObject createObjectNonStatic(String name){
+        return new TestObject(name);
+    }
 }

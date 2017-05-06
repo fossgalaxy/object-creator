@@ -3,8 +3,8 @@ package com.fossgalaxy.object;
 import com.fossgalaxy.object.annotations.ObjectDef;
 import com.fossgalaxy.object.annotations.ObjectDefStatic;
 import com.fossgalaxy.object.annotations.Parameter;
-import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
-import com.fossgalaxy.object.exceptions.TypeMismatchException;
+import com.fossgalaxy.object.exceptions.*;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -128,6 +128,14 @@ public final class ObjectFinder<T> {
         for (Method method : methods) {
             int modifiers = method.getModifiers();
             if (!(Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers))) {
+                ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
+                String name = objectBuilder.value();
+                if(!Modifier.isStatic(modifiers)){
+                    logException(name, new NonStaticMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't static"));
+                }
+                if(!Modifier.isPublic(modifiers)){
+                    logException(name, new NonPublicMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't public"));
+                }
                 continue;
             }
 
@@ -173,6 +181,7 @@ public final class ObjectFinder<T> {
         return new MethodFactory<>(method.getDeclaringClass(), method, convertersInst, name);
     }
 
+    // TODO find all valid constructors and return them. They have ID's anyway and can group by number/type of args maybe
     private ObjectFactory<T> buildFactory(Class<? extends T> objectClazz) {
         Constructor<?> bestMatch = null;
 
@@ -185,9 +194,7 @@ public final class ObjectFinder<T> {
                 if (builder == null) {
                     continue;
                 }
-
                 String name = builder.value().equals("") ? objectClazz.getSimpleName() : builder.value();
-                bestMatch = constructor;
 
                 HashMap<Integer, Parameter> parameters = new HashMap<>();
                 for (Parameter p : constructor.getAnnotationsByType(Parameter.class)) {
