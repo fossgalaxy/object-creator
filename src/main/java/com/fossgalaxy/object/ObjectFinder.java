@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by piers on 13/04/17.
@@ -50,8 +51,6 @@ public final class ObjectFinder<T> {
         buildConverters();
     }
 
-
-
     private void buildConverters() {
         converters.put(String.class, Function.identity());
         converters.put(String[].class, Converters::parseStringArray);
@@ -76,13 +75,13 @@ public final class ObjectFinder<T> {
         converters.put(boolean.class, Boolean::parseBoolean);
         converters.put(boolean[].class, Converters::parseBooleanArray);
         converters.put(Boolean[].class, Converters::parseBooleanClassArray);
+
         converters.put(clazz, this::buildObject);
     }
 
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
         converters.put(clazz, converter);
     }
-
 
     public T buildObject(String data){
         if(data.contains(PARAM_START) && data.contains(PARAM_END)){
@@ -249,7 +248,6 @@ public final class ObjectFinder<T> {
         if (bestMatch == null) {
             throw new IllegalArgumentException("You must either annotate a constructor or provide a public no-args constructor");
         }
-
         return new ConstructorFactory<>(objectClazz, bestMatch, null);
     }
 
@@ -288,7 +286,6 @@ public final class ObjectFinder<T> {
                 }
             }
         }
-
         return convertersInst;
     }
 
