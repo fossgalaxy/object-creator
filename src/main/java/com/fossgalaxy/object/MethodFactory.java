@@ -15,11 +15,11 @@ class MethodFactory<Type> implements ObjectFactory<Type> {
     private final Function<String, ?>[] converters;
     private final String name;
 
-    public MethodFactory(Class<?> clazz, Method method, Function<String, ?>[] converters) {
+    MethodFactory(Class<?> clazz, Method method, Function<String, ?>[] converters) {
         this(clazz, method, converters, clazz.getSimpleName());
     }
 
-    public MethodFactory(Class<?> clazz, Method method, Function<String, ?>[] converters, String name) {
+    MethodFactory(Class<?> clazz, Method method, Function<String, ?>[] converters, String name) {
         this.clazz = clazz;
         this.method = method;
         this.converters = converters;

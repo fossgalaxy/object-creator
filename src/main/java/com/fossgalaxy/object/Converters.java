@@ -8,7 +8,7 @@ import java.util.Arrays;
  * Helper class to store some methods for converting more complex
  * java objects
  */
-public class Converters {
+class Converters {
     static int[] parseIntArray(String data) {
         String[] args = data.split(",");
         int[] argInt = new int[args.length];

@@ -14,11 +14,11 @@ class ConstructorFactory<T> implements ObjectFactory<T> {
     private final Function<String, ?>[] converters;
     private final String name;
 
-    public ConstructorFactory(Class<? extends T> clazz, Constructor<?> constructor, Function<String, ?>[] converters) {
+    ConstructorFactory(Class<? extends T> clazz, Constructor<?> constructor, Function<String, ?>[] converters) {
         this(clazz, constructor, converters, clazz.getSimpleName());
     }
 
-    public ConstructorFactory(Class<? extends T> clazz, Constructor<?> constructor, Function<String, ?>[] converters, String name) {
+    ConstructorFactory(Class<? extends T> clazz, Constructor<?> constructor, Function<String, ?>[] converters, String name) {
         this.clazz = clazz;
         this.constructor = constructor;
         this.converters = converters;
