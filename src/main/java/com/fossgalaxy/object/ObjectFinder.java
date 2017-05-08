@@ -63,12 +63,10 @@ public final class ObjectFinder<T> {
                 opens++;
             } else if (c == PARAM_END.charAt(0)) {
                 opens--;
-            } else if (c == PARAM_SEPARATOR.charAt(0)) {
-                if (opens == 0) {
-                    partsFound.add(currentParam.toString());
-                    currentParam.setLength(0);
-                    continue;
-                }
+            } else if (c == PARAM_SEPARATOR.charAt(0) && opens == 0) {
+                partsFound.add(currentParam.toString());
+                currentParam.setLength(0);
+                continue;
             }
             currentParam.append(Character.toString(c));
         }
@@ -234,12 +232,7 @@ public final class ObjectFinder<T> {
     private ObjectFactory<T> buildFactory(Method method) {
         ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
         String name = objectBuilder.value();
-        HashMap<Integer, Parameter> parameters = new HashMap<>();
-        for (Parameter p : method.getAnnotationsByType(Parameter.class)) {
-            if (!parameters.containsKey(p.id())) {
-                parameters.put(p.id(), p);
-            }
-        }
+        HashMap<Integer, Parameter> parameters = getParameterMap(method.getAnnotationsByType(Parameter.class));
         Function<String, ?>[] convertersInst = getConverters(method.getDeclaringClass(), method.getParameterTypes(), parameters, name);
         return new MethodFactory<>(method.getDeclaringClass(), method, convertersInst, name);
     }
@@ -254,15 +247,10 @@ public final class ObjectFinder<T> {
                 if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
                     bestMatch = constructor;
                 }
-            }else {
+            } else {
                 String name = "".equals(builder.value()) ? objectClazz.getSimpleName() : builder.value();
 
-                HashMap<Integer, Parameter> parameters = new HashMap<>();
-                for (Parameter p : constructor.getAnnotationsByType(Parameter.class)) {
-                    if (!parameters.containsKey(p.id())) {
-                        parameters.put(p.id(), p);
-                    }
-                }
+                HashMap<Integer, Parameter> parameters = getParameterMap(constructor.getAnnotationsByType(Parameter.class));
 
                 Function<String, ?>[] convertersInst = getConverters(objectClazz, constructor.getParameterTypes(), parameters, name);
 
@@ -277,6 +265,16 @@ public final class ObjectFinder<T> {
         return new ConstructorFactory<>(objectClazz, bestMatch, null);
     }
 
+    private HashMap<Integer, Parameter> getParameterMap(Parameter[] parameters) {
+        HashMap<Integer, Parameter> parameterMap = new HashMap<>();
+        for (Parameter p : parameters) {
+            if (!parameterMap.containsKey(p.id())) {
+                parameterMap.put(p.id(), p);
+            }
+        }
+        return parameterMap;
+    }
+
     private void logException(String name, RuntimeException exception) {
         exceptions.computeIfAbsent(name, x -> new ArrayList<>()).add(exception);
     }
@@ -285,40 +283,49 @@ public final class ObjectFinder<T> {
         Function<String, ?>[] convertersInst = (Function[]) Array.newInstance(Function.class, params.length);
         for (int i = 0; i < params.length; i++) {
             if (parameters.containsKey(i)) {
-                Parameter parameter = parameters.get(i);
-                try {
-                    Method methodWithThatName = objectClazz.getMethod(parameter.func(), String.class);
-                    if (Modifier.isPublic(methodWithThatName.getModifiers()) && Modifier.isStatic(methodWithThatName.getModifiers())) {
-                        if (!methodWithThatName.getReturnType().isAssignableFrom(params[i])) {
-                            logException(name,
-                                    new TypeMismatchException("you said params " + i + " was a " + params[i] + " but the converter wants to give me a " + methodWithThatName.getReturnType())
-                            );
-                        }
-                        convertersInst[i] = s -> getConverter(methodWithThatName, s);
-                    }
-                } catch (NoSuchMethodException e) {
-                    logException(name,
-                            new IncorrectFunctionName("No function: " + parameter.func() + " in class: " + objectClazz.getSimpleName())
-                    );
-                }
+                convertersInst[i] = handleParameter(objectClazz, params[i], name, parameters.get(i));
             } else {
-                // Try to handle enums with a default
-                if (params[i].isEnum()) {
-                    final Class enumClass = params[i];
-                    convertersInst[i] = s -> Enum.valueOf(enumClass, s);
-
-                } else {
-                    if (converters.containsKey(params[i])) {
-                        convertersInst[i] = converters.get(params[i]);
-                    } else {
-                        logException(name,
-                                new NoConverterInstalledException("There wasn't a converter installed for type: " + params[i].getSimpleName())
-                        );
-                    }
-                }
+                convertersInst[i] = handleConverter(params[i], name);
             }
         }
         return convertersInst;
+    }
+
+    private Function<String, ?> handleConverter(Class<?> param, String name) {
+        if (param.isEnum()) {
+            final Class enumClass = param;
+            return s -> Enum.valueOf(enumClass, s);
+
+        } else {
+            if (converters.containsKey(param)) {
+                return converters.get(param);
+            } else {
+                logException(name,
+                        new NoConverterInstalledException("There wasn't a converter installed for type: " + param.getSimpleName())
+                );
+            }
+        }
+        return null;
+    }
+
+    private Function<String, ?> handleParameter(Class<?> objectClazz, Class<?> param, String name, Parameter parameter) {
+        try {
+            Method methodWithThatName = objectClazz.getMethod(parameter.func(), String.class);
+            if (Modifier.isPublic(methodWithThatName.getModifiers()) && Modifier.isStatic(methodWithThatName.getModifiers())) {
+                if (!methodWithThatName.getReturnType().isAssignableFrom(param)) {
+                    logException(name,
+                            new TypeMismatchException("you said param was a " + param + " but the converter wants to give me a " + methodWithThatName.getReturnType())
+                    );
+                }
+                return s -> getConverter(methodWithThatName, s);
+            }
+        } catch (NoSuchMethodException e) {
+            logException(name,
+                    new IncorrectFunctionName("No function: " + parameter.func() + " in class: " + objectClazz.getSimpleName())
+            );
+        }
+
+        return null;
     }
 
     private Object getConverter(Method methodWithThatName, String s) {
