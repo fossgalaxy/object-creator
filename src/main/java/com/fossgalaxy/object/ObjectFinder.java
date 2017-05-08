@@ -35,22 +35,34 @@ public final class ObjectFinder<T> {
     private final Class<T> clazz;
     private boolean hasScanned;
 
+    private final String paramStart;
+    private final String paramEnd;
+    private final String paramSeparator;
+
     /**
      * Constructor for an ObjectFinder
      *
      * @param clazz The class of the type and supertype of objects you wish to build
      */
     public ObjectFinder(Class<T> clazz) {
+        this(clazz, PARAM_START, PARAM_SEPARATOR, PARAM_END);
+    }
+
+    public ObjectFinder(Class<T> clazz, String paramStart, String paramSeparator, String paramEnd) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
         this.hasScanned = false;
         this.exceptions = new HashMap<>();
+        this.paramStart = paramStart;
+        this.paramSeparator = paramSeparator;
+        this.paramEnd = paramEnd;
 
         buildConverters();
+
     }
 
-    private static String[] splitArgs(String args) {
+    private String[] splitArgs(String args) {
         int opens = 0;
         ArrayList<String> partsFound = new ArrayList<>();
 
@@ -59,11 +71,11 @@ public final class ObjectFinder<T> {
         for (int index = 0; index < args.length(); index++) {
             char c = args.charAt(index);
             // handle params open/close
-            if (c == PARAM_START.charAt(0)) {
+            if (c == paramStart.charAt(0)) {
                 opens++;
-            } else if (c == PARAM_END.charAt(0)) {
+            } else if (c == paramEnd.charAt(0)) {
                 opens--;
-            } else if (c == PARAM_SEPARATOR.charAt(0) && opens == 0) {
+            } else if (c == paramSeparator.charAt(0) && opens == 0) {
                 partsFound.add(currentParam.toString());
                 currentParam.setLength(0);
                 continue;
@@ -100,7 +112,6 @@ public final class ObjectFinder<T> {
         converters.put(float[].class, Converters::parseFloatArray);
         converters.put(Float[].class, Converters::parseFloatClassArray);
 
-
         converters.put(Boolean.class, Boolean::parseBoolean);
         converters.put(boolean.class, Boolean::parseBoolean);
         converters.put(boolean[].class, Converters::parseBooleanArray);
@@ -127,10 +138,10 @@ public final class ObjectFinder<T> {
      * @return The object of type <T>
      */
     public T buildObject(String data) {
-        if (data.contains(PARAM_START) && data.contains(PARAM_END)) {
-            String args = data.substring(data.indexOf(PARAM_START) + 1, data.lastIndexOf(PARAM_END));
+        if (data.contains(paramStart) && data.contains(paramEnd)) {
+            String args = data.substring(data.indexOf(paramStart) + 1, data.lastIndexOf(paramEnd));
             String[] splitArgs = splitArgs(args);
-            String firstPart = data.substring(0, data.indexOf(PARAM_START));
+            String firstPart = data.substring(0, data.indexOf(paramStart));
             return buildObject(firstPart, splitArgs);
         }
         // Necessary for no args to have a zero length array of String as args
@@ -257,7 +268,6 @@ public final class ObjectFinder<T> {
                 return new ConstructorFactory<>(objectClazz, constructor, convertersInst, name);
             }
         }
-
 
         if (bestMatch == null) {
             throw new IllegalArgumentException("You must either annotate a constructor or provide a public no-args constructor");

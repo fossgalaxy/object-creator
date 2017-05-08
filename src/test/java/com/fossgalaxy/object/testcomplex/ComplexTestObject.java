@@ -30,9 +30,10 @@ public class ComplexTestObject {
     private Long aLongClass;
     private long[] aLongArray;
     private Long[] aLongArrayClass;
+    private TestEnum testEnum;
 
     @ObjectDef("Complex")
-    public ComplexTestObject(String string, Integer integerClass, int integer, Double doubleClass, double dbl, Float floatClass, float flt, Boolean booleanClass, boolean bool, int[] intArray, Integer[] integerArray, double[] doubleArray, Double[] doubleArray1, float[] floatArray, Float[] floatArray1, boolean[] boolArray, Boolean[] booleanArray, String[] stringArray, long aLong, Long aLongClass, long[] aLongArray, Long[] aLongArrayClass) {
+    public ComplexTestObject(String string, Integer integerClass, int integer, Double doubleClass, double dbl, Float floatClass, float flt, Boolean booleanClass, boolean bool, int[] intArray, Integer[] integerArray, double[] doubleArray, Double[] doubleArray1, float[] floatArray, Float[] floatArray1, boolean[] boolArray, Boolean[] booleanArray, String[] stringArray, long aLong, Long aLongClass, long[] aLongArray, Long[] aLongArrayClass, TestEnum testEnum) {
         this.string = string;
         this.integerClass = integerClass;
         this.integer = integer;
@@ -55,6 +56,7 @@ public class ComplexTestObject {
         this.aLongClass = aLongClass;
         this.aLongArray = aLongArray;
         this.aLongArrayClass = aLongArrayClass;
+        this.testEnum = testEnum;
     }
 
 
