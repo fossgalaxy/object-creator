@@ -4,6 +4,8 @@ import com.fossgalaxy.object.annotations.ObjectDef;
 import com.fossgalaxy.object.annotations.ObjectDefStatic;
 import com.fossgalaxy.object.annotations.Parameter;
 import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
+import com.fossgalaxy.object.exceptions.NonPublicMethodAnnotatedException;
+import com.fossgalaxy.object.exceptions.NonStaticMethodAnnotatedException;
 import com.fossgalaxy.object.exceptions.TypeMismatchException;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
@@ -30,6 +32,14 @@ public final class ObjectFinder<T> {
 
     private boolean hasScanned;
 
+    private static final String PARAM_START = "[";
+    private static final String PARAM_END = "]";
+    private static final String PARAM_SEPARATOR = ":";
+
+    /**
+     * Constructor for an ObjectFinder
+     * @param clazz The class of the type and supertype of objects you wish to build
+     */
     public ObjectFinder(Class<T> clazz) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
@@ -40,50 +50,77 @@ public final class ObjectFinder<T> {
         buildConverters();
     }
 
-    private static int[] parseIntArray(String data) {
-        String[] args = data.split(",");
-        int[] argInt = new int[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Integer.parseInt(args[i]);
-        }
-        return argInt;
-    }
 
-    private static double[] parseDoubleArray(String data) {
-        String[] args = data.split(",");
-        double[] argInt = new double[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Double.parseDouble(args[i]);
-        }
-        return argInt;
-    }
-
-    private static float[] parseFloatArray(String data) {
-        String[] args = data.split(",");
-        float[] argInt = new float[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argInt[i] = Float.parseFloat(args[i]);
-        }
-        return argInt;
-    }
 
     private void buildConverters() {
         converters.put(String.class, Function.identity());
+        converters.put(String[].class, Converters::parseStringArray);
+
         converters.put(Integer.class, Integer::parseInt);
         converters.put(int.class, Integer::parseInt);
+        converters.put(int[].class, Converters::parseIntArray);
+        converters.put(Integer[].class, Converters::parseIntegerArray);
+
         converters.put(Double.class, Double::parseDouble);
         converters.put(double.class, Double::parseDouble);
+        converters.put(double[].class, Converters::parseDoubleArray);
+        converters.put(Double[].class, Converters::parseDoubleClassArray);
+
         converters.put(Float.class, Float::parseFloat);
         converters.put(float.class, Float::parseFloat);
+        converters.put(float[].class, Converters::parseFloatArray);
+        converters.put(Float[].class, Converters::parseFloatClassArray);
+
+
         converters.put(Boolean.class, Boolean::parseBoolean);
         converters.put(boolean.class, Boolean::parseBoolean);
-        converters.put(int[].class, ObjectFinder::parseIntArray);
-        converters.put(double[].class, ObjectFinder::parseDoubleArray);
-        converters.put(float[].class, ObjectFinder::parseFloatArray);
+        converters.put(boolean[].class, Converters::parseBooleanArray);
+        converters.put(Boolean[].class, Converters::parseBooleanClassArray);
+        converters.put(clazz, this::buildObject);
     }
 
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
         converters.put(clazz, converter);
+    }
+
+
+    public T buildObject(String data){
+        if(data.contains(PARAM_START) && data.contains(PARAM_END)){
+            String args = data.substring(data.indexOf(PARAM_START) + 1, data.lastIndexOf(PARAM_END));
+            String[] splitArgs = splitArgs(args);
+            String firstPart = data.substring(0, data.indexOf(PARAM_START));
+            return buildObject(firstPart, splitArgs);
+        }
+        // Necessary for no args to have a zero length array of String as args
+        return buildObject(data, new String[0]);
+    }
+
+    private static String[] splitArgs(String args) {
+        int opens = 0;
+        ArrayList<String> partsFound = new ArrayList<>();
+
+        String currentParam = "";
+
+        for (int index = 0; index < args.length(); index++) {
+            char c = args.charAt(index);
+            // handle params open/close
+            if(c == PARAM_START.charAt(0)){
+                opens++;
+            }else if(c == PARAM_END.charAt(0)){
+                opens--;
+            }else if(c == PARAM_SEPARATOR.charAt(0)){
+                if(opens == 0){
+                    partsFound.add(currentParam);
+                    currentParam = "";
+                    continue;
+                }
+            }
+            currentParam += c;
+        }
+        if(!currentParam.equals("")){
+            partsFound.add(currentParam);
+        }
+        return partsFound.toArray(new String[partsFound.size()]);
     }
 
     public T buildObject(String name, String... args) {
@@ -99,7 +136,7 @@ public final class ObjectFinder<T> {
 
         ObjectFactory<T> factory = knownFactories.get(name);
         if (factory == null) {
-            throw new IllegalArgumentException("Unkown factory type: " + name);
+            throw new IllegalArgumentException("Unknown factory type: " + name);
         }
 
         return factory.build(args);
@@ -128,6 +165,14 @@ public final class ObjectFinder<T> {
         for (Method method : methods) {
             int modifiers = method.getModifiers();
             if (!(Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers))) {
+                ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
+                String name = objectBuilder.value();
+                if(!Modifier.isStatic(modifiers)){
+                    logException(name, new NonStaticMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't static"));
+                }
+                if(!Modifier.isPublic(modifiers)){
+                    logException(name, new NonPublicMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't public"));
+                }
                 continue;
             }
 
@@ -173,6 +218,7 @@ public final class ObjectFinder<T> {
         return new MethodFactory<>(method.getDeclaringClass(), method, convertersInst, name);
     }
 
+    // TODO find all valid constructors and return them. They have ID's anyway and can group by number/type of args maybe
     private ObjectFactory<T> buildFactory(Class<? extends T> objectClazz) {
         Constructor<?> bestMatch = null;
 
@@ -185,9 +231,7 @@ public final class ObjectFinder<T> {
                 if (builder == null) {
                     continue;
                 }
-
                 String name = builder.value().equals("") ? objectClazz.getSimpleName() : builder.value();
-                bestMatch = constructor;
 
                 HashMap<Integer, Parameter> parameters = new HashMap<>();
                 for (Parameter p : constructor.getAnnotationsByType(Parameter.class)) {
@@ -207,8 +251,6 @@ public final class ObjectFinder<T> {
         }
 
         return new ConstructorFactory<>(objectClazz, bestMatch, null);
-
-
     }
 
     private void logException(String name, RuntimeException exception) {
