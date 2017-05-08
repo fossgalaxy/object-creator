@@ -1,8 +1,6 @@
 package com.fossgalaxy.object;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Piers on 06/05/2017.
@@ -27,17 +25,17 @@ class Converters {
                 .toArray(Integer[]::new);
     }
 
-    static Long[] parseLongClassArray(String data){
+    static Long[] parseLongClassArray(String data) {
         return Arrays
                 .stream(data.split(","))
                 .map(Long::parseLong)
                 .toArray(Long[]::new);
     }
 
-    static long[] parseLongArray(String data){
+    static long[] parseLongArray(String data) {
         String[] args = data.split(",");
         long[] results = new long[args.length];
-        for(int i = 0; i < args.length; i++){
+        for (int i = 0; i < args.length; i++) {
             results[i] = Long.parseLong(args[i]);
         }
         return results;

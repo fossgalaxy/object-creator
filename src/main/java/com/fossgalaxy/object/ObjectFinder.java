@@ -339,10 +339,20 @@ public final class ObjectFinder<T> {
         return null;
     }
 
+    /**
+     * Gets the set of classes that we support as converters
+     *
+     * @return Set of Class that we support
+     */
     public Set<Class<?>> getInstalledConverters() {
         return converters.keySet();
     }
 
+    /**
+     * Gets the set of IDs that you can ask this object to build
+     *
+     * @return Set of String that we support as IDs
+     */
     public Set<String> getBuildableObjects() {
         return knownFactories.keySet();
     }
