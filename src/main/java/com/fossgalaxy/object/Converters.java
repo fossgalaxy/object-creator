@@ -1,10 +1,12 @@
 package com.fossgalaxy.object;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Piers on 06/05/2017.
- *
+ * <p>
  * Helper class to store some methods for converting more complex
  * java objects
  */
@@ -18,7 +20,14 @@ class Converters {
         return argInt;
     }
 
-    static Integer[] parseIntegerArray(String data){
+    static List<Integer> parseIntegerList(String data) {
+        return Arrays.
+                stream(data.split(","))
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
+
+    static Integer[] parseIntegerArray(String data) {
         return Arrays.
                 stream(data.split(","))
                 .map(Integer::parseInt)
@@ -34,7 +43,14 @@ class Converters {
         return argInt;
     }
 
-    static Double[] parseDoubleClassArray(String data){
+    static List<Double> parseDoubleList(String data) {
+        return Arrays
+                .stream(data.split(","))
+                .map(Double::parseDouble)
+                .collect(Collectors.toList());
+    }
+
+    static Double[] parseDoubleClassArray(String data) {
         return Arrays
                 .stream(data.split(","))
                 .map(Double::parseDouble)
@@ -50,34 +66,52 @@ class Converters {
         return argInt;
     }
 
-    static Float[] parseFloatClassArray(String data){
-        return
-                Arrays
+    static List<Float> parseFloatList(String data) {
+        return Arrays
+                .stream(data.split(","))
+                .map(Float::parseFloat)
+                .collect(Collectors.toList());
+    }
+
+    static Float[] parseFloatClassArray(String data) {
+        return Arrays
                 .stream(data.split(","))
                 .map(Float::parseFloat)
                 .toArray(Float[]::new);
     }
 
-    static boolean[] parseBooleanArray(String data){
+    static boolean[] parseBooleanArray(String data) {
         String[] args = data.split(",");
         boolean[] result = new boolean[args.length];
-        for(int i = 0; i < result.length; i++){
+        for (int i = 0; i < result.length; i++) {
             result[i] = Boolean.parseBoolean(args[i]);
         }
         return result;
     }
 
-    static Boolean[] parseBooleanClassArray(String data){
-        return
-                Arrays
+    static List<Boolean> parseBooleanList(String data) {
+        return Arrays
+                .stream(data.split(","))
+                .map(Boolean::parseBoolean)
+                .collect(Collectors.toList());
+    }
+
+    static Boolean[] parseBooleanClassArray(String data) {
+        return Arrays
                 .stream(data.split(","))
                 .map(Boolean::parseBoolean)
                 .toArray(Boolean[]::new);
     }
 
-    static String[] parseStringArray(String data){
+    static String[] parseStringArray(String data) {
         return Arrays
                 .stream(data.split(","))
                 .toArray(String[]::new);
+    }
+
+    static List<String> parseStringList(String data) {
+        return Arrays
+                .stream(data.split(","))
+                .collect(Collectors.toList());
     }
 }
