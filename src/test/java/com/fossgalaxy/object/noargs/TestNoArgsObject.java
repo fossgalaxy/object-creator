@@ -1,5 +1,6 @@
-package com.fossgalaxy.object;
+package com.fossgalaxy.object.noargs;
 
+import com.fossgalaxy.object.ObjectFinder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

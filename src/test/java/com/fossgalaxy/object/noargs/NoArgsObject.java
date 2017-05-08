@@ -1,4 +1,4 @@
-package com.fossgalaxy.object;
+package com.fossgalaxy.object.noargs;
 
 /**
  * Created by Piers on 06/05/2017.

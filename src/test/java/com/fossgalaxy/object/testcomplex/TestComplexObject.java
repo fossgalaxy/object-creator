@@ -1,6 +1,6 @@
-package com.fossgalaxy.object;
+package com.fossgalaxy.object.testcomplex;
 
-import org.junit.Before;
+import com.fossgalaxy.object.ObjectFinder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,7 +38,11 @@ public class TestComplexObject {
                 "2.1,2.2,2.3",
                 "true,false",
                 "true,false",
-                "test,Test,test"
+                "test,Test,test",
+                "1",
+                "1",
+                "1,2",
+                "3,4"
                 );
 
         assertNotNull(object);

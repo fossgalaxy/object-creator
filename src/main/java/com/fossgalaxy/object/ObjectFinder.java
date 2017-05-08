@@ -3,10 +3,7 @@ package com.fossgalaxy.object;
 import com.fossgalaxy.object.annotations.ObjectDef;
 import com.fossgalaxy.object.annotations.ObjectDefStatic;
 import com.fossgalaxy.object.annotations.Parameter;
-import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
-import com.fossgalaxy.object.exceptions.NonPublicMethodAnnotatedException;
-import com.fossgalaxy.object.exceptions.NonStaticMethodAnnotatedException;
-import com.fossgalaxy.object.exceptions.TypeMismatchException;
+import com.fossgalaxy.object.exceptions.*;
 import org.reflections.Reflections;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -22,26 +19,25 @@ import java.util.function.Function;
 
 /**
  * Created by piers on 13/04/17.
- *
+ * <p>
  * Object that allows creation of objects from strings at runtime
  *
  * @param <T> The type of object that you wish to instantiate
  */
 public final class ObjectFinder<T> {
     private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
+    private static final String PARAM_START = "[";
+    private static final String PARAM_END = "]";
+    private static final String PARAM_SEPARATOR = ":";
     private final Map<Class<?>, Function<String, ?>> converters;
     private final Map<String, ObjectFactory<T>> knownFactories;
     private final Map<String, List<RuntimeException>> exceptions;
     private final Class<T> clazz;
-
     private boolean hasScanned;
-
-    private static final String PARAM_START = "[";
-    private static final String PARAM_END = "]";
-    private static final String PARAM_SEPARATOR = ":";
 
     /**
      * Constructor for an ObjectFinder
+     *
      * @param clazz The class of the type and supertype of objects you wish to build
      */
     public ObjectFinder(Class<T> clazz) {
@@ -54,6 +50,34 @@ public final class ObjectFinder<T> {
         buildConverters();
     }
 
+    private static String[] splitArgs(String args) {
+        int opens = 0;
+        ArrayList<String> partsFound = new ArrayList<>();
+
+        StringBuilder currentParam = new StringBuilder("");
+
+        for (int index = 0; index < args.length(); index++) {
+            char c = args.charAt(index);
+            // handle params open/close
+            if (c == PARAM_START.charAt(0)) {
+                opens++;
+            } else if (c == PARAM_END.charAt(0)) {
+                opens--;
+            } else if (c == PARAM_SEPARATOR.charAt(0)) {
+                if (opens == 0) {
+                    partsFound.add(currentParam.toString());
+                    currentParam.setLength(0);
+                    continue;
+                }
+            }
+            currentParam.append(Character.toString(c));
+        }
+        if (!"".equals(currentParam.toString())) {
+            partsFound.add(currentParam.toString());
+        }
+        return partsFound.toArray(new String[partsFound.size()]);
+    }
+
     private void buildConverters() {
         converters.put(String.class, Function.identity());
         converters.put(String[].class, Converters::parseStringArray);
@@ -62,6 +86,11 @@ public final class ObjectFinder<T> {
         converters.put(int.class, Integer::parseInt);
         converters.put(int[].class, Converters::parseIntArray);
         converters.put(Integer[].class, Converters::parseIntegerArray);
+
+        converters.put(Long.class, Long::parseLong);
+        converters.put(long.class, Long::parseLong);
+        converters.put(long[].class, Converters::parseLongArray);
+        converters.put(Long[].class, Converters::parseLongClassArray);
 
         converters.put(Double.class, Double::parseDouble);
         converters.put(double.class, Double::parseDouble);
@@ -84,9 +113,10 @@ public final class ObjectFinder<T> {
 
     /**
      * Add a custom converter to the unit
-     * @param clazz the class of the object that this converter creates
+     *
+     * @param clazz     the class of the object that this converter creates
      * @param converter The Function that performs the converting
-     * @param <U> The Type of the object that this converter creates
+     * @param <U>       The Type of the object that this converter creates
      */
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
         converters.put(clazz, converter);
@@ -94,11 +124,12 @@ public final class ObjectFinder<T> {
 
     /**
      * Build an object from a string
+     *
      * @param data The string containing the object definition
      * @return The object of type <T>
      */
-    public T buildObject(String data){
-        if(data.contains(PARAM_START) && data.contains(PARAM_END)){
+    public T buildObject(String data) {
+        if (data.contains(PARAM_START) && data.contains(PARAM_END)) {
             String args = data.substring(data.indexOf(PARAM_START) + 1, data.lastIndexOf(PARAM_END));
             String[] splitArgs = splitArgs(args);
             String firstPart = data.substring(0, data.indexOf(PARAM_START));
@@ -108,36 +139,9 @@ public final class ObjectFinder<T> {
         return buildObject(data, new String[0]);
     }
 
-    private static String[] splitArgs(String args) {
-        int opens = 0;
-        ArrayList<String> partsFound = new ArrayList<>();
-
-        StringBuilder currentParam = new StringBuilder("");
-
-        for (int index = 0; index < args.length(); index++) {
-            char c = args.charAt(index);
-            // handle params open/close
-            if(c == PARAM_START.charAt(0)){
-                opens++;
-            }else if(c == PARAM_END.charAt(0)){
-                opens--;
-            }else if(c == PARAM_SEPARATOR.charAt(0)){
-                if(opens == 0){
-                    partsFound.add(currentParam.toString());
-                    currentParam.setLength(0);
-                    continue;
-                }
-            }
-            currentParam.append(Character.toString(c));
-        }
-        if(!"".equals(currentParam.toString())){
-            partsFound.add(currentParam.toString());
-        }
-        return partsFound.toArray(new String[partsFound.size()]);
-    }
-
     /**
      * Build an object from the name, and individual arguments
+     *
      * @param name The name of the object from the definition
      * @param args The individual arguments
      * @return The Object that was built
@@ -147,8 +151,8 @@ public final class ObjectFinder<T> {
             scanForObjects();
         }
 
-        if(exceptions.containsKey(name)){
-            for(RuntimeException e : exceptions.get(name)){
+        if (exceptions.containsKey(name)) {
+            for (RuntimeException e : exceptions.get(name)) {
                 throw e;
             }
         }
@@ -186,10 +190,11 @@ public final class ObjectFinder<T> {
             if (!(Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers))) {
                 ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
                 String name = objectBuilder.value();
-                if(!Modifier.isStatic(modifiers)){
+                logger.info("Found: {}.{} annotated as {} ", method.getDeclaringClass(), method.getName(), name);
+                if (!Modifier.isStatic(modifiers)) {
                     logException(name, new NonStaticMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't static"));
                 }
-                if(!Modifier.isPublic(modifiers)){
+                if (!Modifier.isPublic(modifiers)) {
                     logException(name, new NonPublicMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't public"));
                 }
                 continue;
@@ -213,6 +218,8 @@ public final class ObjectFinder<T> {
             if (Modifier.isAbstract(classMods) || !Modifier.isPublic(classMods)) {
                 continue;
             }
+
+            logger.info("Found: {}", objectClazz.getCanonicalName());
 
             try {
                 ObjectFactory<T> factory = buildFactory(objectClazz);
@@ -242,13 +249,12 @@ public final class ObjectFinder<T> {
 
         Constructor<?>[] constructors = objectClazz.getConstructors();
         for (Constructor<?> constructor : constructors) {
-            if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
-                bestMatch = constructor;
-            } else {
-                ObjectDef builder = constructor.getAnnotation(ObjectDef.class);
-                if (builder == null) {
-                    continue;
+            ObjectDef builder = constructor.getAnnotation(ObjectDef.class);
+            if (builder == null) {
+                if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
+                    bestMatch = constructor;
                 }
+            }else {
                 String name = "".equals(builder.value()) ? objectClazz.getSimpleName() : builder.value();
 
                 HashMap<Integer, Parameter> parameters = new HashMap<>();
@@ -263,6 +269,7 @@ public final class ObjectFinder<T> {
                 return new ConstructorFactory<>(objectClazz, constructor, convertersInst, name);
             }
         }
+
 
         if (bestMatch == null) {
             throw new IllegalArgumentException("You must either annotate a constructor or provide a public no-args constructor");
@@ -301,7 +308,13 @@ public final class ObjectFinder<T> {
                     convertersInst[i] = s -> Enum.valueOf(enumClass, s);
 
                 } else {
-                    convertersInst[i] = converters.get(params[i]);
+                    if (converters.containsKey(params[i])) {
+                        convertersInst[i] = converters.get(params[i]);
+                    } else {
+                        logException(name,
+                                new NoConverterInstalledException("There wasn't a converter installed for type: " + params[i].getSimpleName())
+                        );
+                    }
                 }
             }
         }
@@ -317,5 +330,13 @@ public final class ObjectFinder<T> {
             logger.error("", e);
         }
         return null;
+    }
+
+    public Set<Class<?>> getInstalledConverters() {
+        return converters.keySet();
+    }
+
+    public Set<String> getBuildableObjects() {
+        return knownFactories.keySet();
     }
 }

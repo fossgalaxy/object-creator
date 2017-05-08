@@ -39,6 +39,13 @@ class ConstructorFactory<T> implements ObjectFactory<T> {
 
             params = new Object[converters.length];
             for (int i = 0; i < params.length; i++) {
+                if(converters[i] == null){
+                    logger.error("Converter: " + i + " for parameter value: " + args[i] + " in class: " + clazz);
+                }
+
+                if(args[i] == null){
+                    logger.error("Argument missing");
+                }
                 params[i] = converters[i].apply(args[i]);
             }
         }

@@ -20,19 +20,29 @@ class Converters {
         return argInt;
     }
 
-    static List<Integer> parseIntegerList(String data) {
-        return Arrays.
-                stream(data.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-    }
-
     static Integer[] parseIntegerArray(String data) {
         return Arrays.
                 stream(data.split(","))
                 .map(Integer::parseInt)
                 .toArray(Integer[]::new);
     }
+
+    static Long[] parseLongClassArray(String data){
+        return Arrays
+                .stream(data.split(","))
+                .map(Long::parseLong)
+                .toArray(Long[]::new);
+    }
+
+    static long[] parseLongArray(String data){
+        String[] args = data.split(",");
+        long[] results = new long[args.length];
+        for(int i = 0; i < args.length; i++){
+            results[i] = Long.parseLong(args[i]);
+        }
+        return results;
+    }
+
 
     static double[] parseDoubleArray(String data) {
         String[] args = data.split(",");
@@ -41,13 +51,6 @@ class Converters {
             argInt[i] = Double.parseDouble(args[i]);
         }
         return argInt;
-    }
-
-    static List<Double> parseDoubleList(String data) {
-        return Arrays
-                .stream(data.split(","))
-                .map(Double::parseDouble)
-                .collect(Collectors.toList());
     }
 
     static Double[] parseDoubleClassArray(String data) {
@@ -66,13 +69,6 @@ class Converters {
         return argInt;
     }
 
-    static List<Float> parseFloatList(String data) {
-        return Arrays
-                .stream(data.split(","))
-                .map(Float::parseFloat)
-                .collect(Collectors.toList());
-    }
-
     static Float[] parseFloatClassArray(String data) {
         return Arrays
                 .stream(data.split(","))
@@ -89,13 +85,6 @@ class Converters {
         return result;
     }
 
-    static List<Boolean> parseBooleanList(String data) {
-        return Arrays
-                .stream(data.split(","))
-                .map(Boolean::parseBoolean)
-                .collect(Collectors.toList());
-    }
-
     static Boolean[] parseBooleanClassArray(String data) {
         return Arrays
                 .stream(data.split(","))
@@ -107,11 +96,5 @@ class Converters {
         return Arrays
                 .stream(data.split(","))
                 .toArray(String[]::new);
-    }
-
-    static List<String> parseStringList(String data) {
-        return Arrays
-                .stream(data.split(","))
-                .collect(Collectors.toList());
     }
 }
