@@ -3,7 +3,6 @@ package com.fossgalaxy.object;
 
 import com.fossgalaxy.object.exceptions.IncorrectFunctionName;
 import com.fossgalaxy.object.exceptions.TypeMismatchException;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
