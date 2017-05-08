@@ -1,5 +1,8 @@
 package com.fossgalaxy.object;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -8,8 +11,8 @@ import java.util.function.Function;
 /**
  * Created by piers on 05/05/17.
  */
-class MethodFactory<Type> implements ObjectFactory<Type> {
-
+class MethodFactory<T> implements ObjectFactory<T> {
+private static final Logger logger = LoggerFactory.getLogger(MethodFactory.class);
     private final Class<?> clazz;
     private final Method method;
     private final Function<String, ?>[] converters;
@@ -27,7 +30,7 @@ class MethodFactory<Type> implements ObjectFactory<Type> {
     }
 
     @Override
-    public Type build(String[] args) {
+    public T build(String[] args) {
         Object[] params = new Object[0];
         if (converters != null) {
             if (converters.length != args.length) {
@@ -41,11 +44,11 @@ class MethodFactory<Type> implements ObjectFactory<Type> {
         }
 
         try {
-            return (Type) method.invoke(null, params);
+            return (T) method.invoke(null, params);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("Couldn't access method", e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            logger.error("", e);
         }
         return null;
     }

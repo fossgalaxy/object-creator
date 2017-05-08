@@ -19,10 +19,13 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Created by piers on 13/04/17.
+ *
+ * Object that allows creation of objects from strings at runtime
+ *
+ * @param <T> The type of object that you wish to instantiate
  */
 public final class ObjectFinder<T> {
     private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
@@ -79,10 +82,21 @@ public final class ObjectFinder<T> {
         converters.put(clazz, this::buildObject);
     }
 
+    /**
+     * Add a custom converter to the unit
+     * @param clazz the class of the object that this converter creates
+     * @param converter The Function that performs the converting
+     * @param <U> The Type of the object that this converter creates
+     */
     public <U> void addConverter(Class<U> clazz, Function<String, U> converter) {
         converters.put(clazz, converter);
     }
 
+    /**
+     * Build an object from a string
+     * @param data The string containing the object definition
+     * @return The object of type <T>
+     */
     public T buildObject(String data){
         if(data.contains(PARAM_START) && data.contains(PARAM_END)){
             String args = data.substring(data.indexOf(PARAM_START) + 1, data.lastIndexOf(PARAM_END));
@@ -98,7 +112,7 @@ public final class ObjectFinder<T> {
         int opens = 0;
         ArrayList<String> partsFound = new ArrayList<>();
 
-        String currentParam = "";
+        StringBuilder currentParam = new StringBuilder("");
 
         for (int index = 0; index < args.length(); index++) {
             char c = args.charAt(index);
@@ -109,19 +123,25 @@ public final class ObjectFinder<T> {
                 opens--;
             }else if(c == PARAM_SEPARATOR.charAt(0)){
                 if(opens == 0){
-                    partsFound.add(currentParam);
-                    currentParam = "";
+                    partsFound.add(currentParam.toString());
+                    currentParam.setLength(0);
                     continue;
                 }
             }
-            currentParam += c;
+            currentParam.append(Character.toString(c));
         }
-        if(!currentParam.equals("")){
-            partsFound.add(currentParam);
+        if(!"".equals(currentParam.toString())){
+            partsFound.add(currentParam.toString());
         }
         return partsFound.toArray(new String[partsFound.size()]);
     }
 
+    /**
+     * Build an object from the name, and individual arguments
+     * @param name The name of the object from the definition
+     * @param args The individual arguments
+     * @return The Object that was built
+     */
     public T buildObject(String name, String... args) {
         if (!hasScanned) {
             scanForObjects();
@@ -217,7 +237,6 @@ public final class ObjectFinder<T> {
         return new MethodFactory<>(method.getDeclaringClass(), method, convertersInst, name);
     }
 
-    // TODO find all valid constructors and return them. They have ID's anyway and can group by number/type of args maybe
     private ObjectFactory<T> buildFactory(Class<? extends T> objectClazz) {
         Constructor<?> bestMatch = null;
 
@@ -230,7 +249,7 @@ public final class ObjectFinder<T> {
                 if (builder == null) {
                     continue;
                 }
-                String name = builder.value().equals("") ? objectClazz.getSimpleName() : builder.value();
+                String name = "".equals(builder.value()) ? objectClazz.getSimpleName() : builder.value();
 
                 HashMap<Integer, Parameter> parameters = new HashMap<>();
                 for (Parameter p : constructor.getAnnotationsByType(Parameter.class)) {
@@ -241,7 +260,7 @@ public final class ObjectFinder<T> {
 
                 Function<String, ?>[] convertersInst = getConverters(objectClazz, constructor.getParameterTypes(), parameters, name);
 
-                return new ConstructorFactory<T>(objectClazz, constructor, convertersInst, name);
+                return new ConstructorFactory<>(objectClazz, constructor, convertersInst, name);
             }
         }
 
@@ -268,7 +287,7 @@ public final class ObjectFinder<T> {
                                     new TypeMismatchException("you said params " + i + " was a " + params[i] + " but the converter wants to give me a " + methodWithThatName.getReturnType())
                             );
                         }
-                        convertersInst[i] = (s) -> getConverter(methodWithThatName, s);
+                        convertersInst[i] = s -> getConverter(methodWithThatName, s);
                     }
                 } catch (NoSuchMethodException e) {
                     logException(name,
@@ -279,7 +298,7 @@ public final class ObjectFinder<T> {
                 // Try to handle enums with a default
                 if (params[i].isEnum()) {
                     final Class enumClass = params[i];
-                    convertersInst[i] = (s) -> Enum.valueOf(enumClass, s);
+                    convertersInst[i] = s -> Enum.valueOf(enumClass, s);
 
                 } else {
                     convertersInst[i] = converters.get(params[i]);
@@ -293,9 +312,9 @@ public final class ObjectFinder<T> {
         try {
             return methodWithThatName.invoke(null, s);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("Couldn't access converter", e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            logger.error("", e);
         }
         return null;
     }

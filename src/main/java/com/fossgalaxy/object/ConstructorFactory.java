@@ -1,5 +1,8 @@
 package com.fossgalaxy.object;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -9,6 +12,7 @@ import java.util.function.Function;
  * Created by piers on 05/05/17.
  */
 class ConstructorFactory<T> implements ObjectFactory<T> {
+    private static final Logger logger = LoggerFactory.getLogger(ConstructorFactory.class);
     private final Class<? extends T> clazz;
     private final Constructor<?> constructor;
     private final Function<String, ?>[] converters;
@@ -42,11 +46,11 @@ class ConstructorFactory<T> implements ObjectFactory<T> {
         try {
             return (T) constructor.newInstance(params);
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            logger.error("Couldn't create Object", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("Couldn't access Constructor", e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            logger.error("", e);
         }
         return null;
     }
