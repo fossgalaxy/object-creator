@@ -43,6 +43,11 @@ public class TestObjectFinder {
         TestObject testObject = finder.buildObject("Object", "Peanut", "Peanut");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testWrongArgumentCountStatic(){
+        TestObject testObject = finder.buildObject("Name", "Peanuit");
+    }
+
     @Test
     public void testDelegatedFunction() {
         TestObject testObject = finder.buildObject("WithUnknown", "Name", "Peanut");
