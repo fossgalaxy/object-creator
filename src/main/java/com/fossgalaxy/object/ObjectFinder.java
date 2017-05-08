@@ -26,32 +26,25 @@ import java.util.function.Function;
  */
 public final class ObjectFinder<T> {
     private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
-    private static final String PARAM_START = "[";
-    private static final String PARAM_END = "]";
-    private static final String PARAM_SEPARATOR = ":";
+    public static final String PARAM_START = "[";
+    public static final String PARAM_END = "]";
+    public static final String PARAM_SEPARATOR = ":";
     private final Map<Class<?>, Function<String, ?>> converters;
     private final Map<String, ObjectFactory<T>> knownFactories;
     private final Map<String, List<RuntimeException>> exceptions;
     private final Class<T> clazz;
     private boolean hasScanned;
+    private final T[] array;
 
     private final String paramStart;
     private final String paramEnd;
     private final String paramSeparator;
 
-    /**
-     * Constructor for an ObjectFinder
-     *
-     * @param clazz The class of the type and supertype of objects you wish to build
-     */
-    public ObjectFinder(Class<T> clazz) {
-        this(clazz, PARAM_START, PARAM_SEPARATOR, PARAM_END);
-    }
-
-    public ObjectFinder(Class<T> clazz, String paramStart, String paramSeparator, String paramEnd) {
+    ObjectFinder(Class<T> clazz, T[] array, String paramStart, String paramSeparator, String paramEnd) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
+        this.array = array;
         this.hasScanned = false;
         this.exceptions = new HashMap<>();
         this.paramStart = paramStart;
@@ -118,6 +111,9 @@ public final class ObjectFinder<T> {
         converters.put(Boolean[].class, Converters::parseBooleanClassArray);
 
         converters.put(clazz, this::buildObject);
+        if(array != null){
+            converters.put(array.getClass(), s -> Arrays.stream(s.split(",")).map(this::buildObject).toArray());
+        }
     }
 
     /**

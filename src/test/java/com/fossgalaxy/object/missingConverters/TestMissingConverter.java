@@ -1,6 +1,7 @@
 package com.fossgalaxy.object.missingConverters;
 
 import com.fossgalaxy.object.ObjectFinder;
+import com.fossgalaxy.object.ObjectFinderBuilder;
 import com.fossgalaxy.object.exceptions.NoConverterInstalledException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,7 +15,7 @@ public class TestMissingConverter {
 
     @BeforeClass
     public static void setup() {
-        finder = new ObjectFinder<>(TestMissingConverterObject.class);
+        finder = new ObjectFinderBuilder<>(TestMissingConverterObject.class).build();
     }
 
     @Test(expected = NoConverterInstalledException.class)

@@ -18,7 +18,7 @@ public class TestObjectFinder {
 
     @BeforeClass
     public static void setup() {
-        finder = new ObjectFinder<>(TestObject.class);
+        finder = new ObjectFinderBuilder<>(TestObject.class).build();
     }
 
     @Test

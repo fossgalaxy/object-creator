@@ -1,6 +1,7 @@
 package com.fossgalaxy.object.nesting;
 
 import com.fossgalaxy.object.ObjectFinder;
+import com.fossgalaxy.object.ObjectFinderBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,7 +17,7 @@ public class TestNestedAgent {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinder<>(Agent.class);
+        finder = new ObjectFinderBuilder<>(Agent.class).build();
     }
 
     @Test
