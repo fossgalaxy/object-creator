@@ -1,7 +1,6 @@
 package com.fossgalaxy.object.testcomplex;
 
 import com.fossgalaxy.object.ObjectFinder;
-import com.fossgalaxy.object.ObjectFinderBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,7 +15,7 @@ public class TestComplexObject {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinderBuilder<>(ComplexTestObject.class).build();
+        finder = new ObjectFinder.Builder<>(ComplexTestObject.class).build();
     }
 
     @Test

@@ -1,9 +1,9 @@
 package com.fossgalaxy.object;
 
 /**
- * Created by piers on 13/04/17.
+ * Internal objects that create objects for us
  */
-public interface ObjectFactory<T> {
+interface ObjectFactory<T> {
 
     T build(String[] args);
     default T build(){ return build(new String[0]);}

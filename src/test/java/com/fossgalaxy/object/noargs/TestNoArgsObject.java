@@ -1,7 +1,6 @@
 package com.fossgalaxy.object.noargs;
 
 import com.fossgalaxy.object.ObjectFinder;
-import com.fossgalaxy.object.ObjectFinderBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -16,7 +15,7 @@ public class TestNoArgsObject {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinderBuilder<>(NoArgsObject.class).build();
+        finder = new ObjectFinder.Builder<>(NoArgsObject.class).build();
     }
 
     @Test

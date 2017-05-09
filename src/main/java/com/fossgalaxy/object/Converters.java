@@ -9,6 +9,9 @@ import java.util.Arrays;
  * java objects
  */
 class Converters {
+    // Hiding any public constructor
+    private Converters(){}
+
     static int[] parseIntArray(String data) {
         String[] args = data.split(",");
         int[] argInt = new int[args.length];

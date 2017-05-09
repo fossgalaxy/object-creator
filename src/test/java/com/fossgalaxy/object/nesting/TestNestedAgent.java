@@ -1,7 +1,6 @@
 package com.fossgalaxy.object.nesting;
 
 import com.fossgalaxy.object.ObjectFinder;
-import com.fossgalaxy.object.ObjectFinderBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -17,7 +16,7 @@ public class TestNestedAgent {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinderBuilder<>(Agent.class).build();
+        finder = new ObjectFinder.Builder<>(Agent.class).build();
     }
 
     @Test
@@ -30,7 +29,24 @@ public class TestNestedAgent {
         assertEquals(Agent.class, iggiAgent.getAgent().getClass());
         assertEquals("first", iggiAgent.getAgent().getName());
         assertEquals("butter", iggiAgent.getOther());
+    }
 
+    @Test
+    public void testSimpleNestedCaseOtherStrings(){
+        finder = new ObjectFinder.Builder<>(Agent.class)
+                .setParamStart("(")
+                .setParamSeparator(",")
+                .setParamEnd(")")
+                .build();
+
+        Agent agent = finder.buildObject("iggi(peanut,Agent(first),butter)");
+        assertNotNull(agent);
+        assertEquals("peanut", agent.getName());
+        assertEquals(IGGIAgent.class, agent.getClass());
+        IGGIAgent iggiAgent = (IGGIAgent) agent;
+        assertEquals(Agent.class, iggiAgent.getAgent().getClass());
+        assertEquals("first", iggiAgent.getAgent().getName());
+        assertEquals("butter", iggiAgent.getOther());
     }
 
 

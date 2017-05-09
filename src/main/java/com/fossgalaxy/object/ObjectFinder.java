@@ -40,7 +40,7 @@ public final class ObjectFinder<T> {
     private final String paramEnd;
     private final String paramSeparator;
 
-    ObjectFinder(Class<T> clazz, T[] array, String paramStart, String paramSeparator, String paramEnd) {
+    private ObjectFinder(Class<T> clazz, T[] array, String paramStart, String paramSeparator, String paramEnd) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
@@ -361,5 +361,46 @@ public final class ObjectFinder<T> {
      */
     public Set<String> getBuildableObjects() {
         return knownFactories.keySet();
+    }
+
+
+    public static class Builder<T> {
+        private final Class<T> clazz;
+        private T[] array = null;
+        private String paramStart = PARAM_START;
+        private String paramSeparator = PARAM_SEPARATOR;
+        private String paramEnd = PARAM_END;
+
+        /**
+         *
+         * @param clazz
+         */
+        public Builder(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Builder<T> setArray(T[] array) {
+            this.array = array;
+            return this;
+        }
+
+        public Builder<T> setParamStart(String paramStart) {
+            this.paramStart = paramStart;
+            return this;
+        }
+
+        public Builder<T> setParamSeparator(String paramSeparator) {
+            this.paramSeparator = paramSeparator;
+            return this;
+        }
+
+        public Builder<T> setParamEnd(String paramEnd) {
+            this.paramEnd = paramEnd;
+            return this;
+        }
+
+        public ObjectFinder<T> build() {
+            return new ObjectFinder<>(clazz, array, paramStart, paramSeparator, paramEnd);
+        }
     }
 }
