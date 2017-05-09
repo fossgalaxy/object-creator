@@ -5,9 +5,12 @@ package com.fossgalaxy.object.exceptions;
  */
 public class TypeMismatchException extends ObjectCreatorException {
 
-
-    public TypeMismatchException(String s) {
-        super(s);
+    /**
+     *
+     * @param message Message explaining what went wrong
+     */
+    public TypeMismatchException(String message) {
+        super(message);
     }
 
 }

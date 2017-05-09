@@ -5,6 +5,10 @@ package com.fossgalaxy.object.exceptions;
  */
 public class ObjectCreatorException extends RuntimeException {
 
+    /**
+     *
+     * @param message Message explaining what went wrong
+     */
     public ObjectCreatorException(String message) {
         super(message);
     }
