@@ -66,4 +66,9 @@ class ConstructorFactory<T> implements ObjectFactory<T> {
     public String name() {
         return name;
     }
+
+    @Override
+    public Class<T> getBuildableClass(){
+        return (Class<T>) clazz;
+    }
 }

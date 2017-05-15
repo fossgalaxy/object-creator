@@ -62,4 +62,9 @@ private static final Logger logger = LoggerFactory.getLogger(MethodFactory.class
     public String toString() {
         return String.format("Object Factory for: %s - %s, %s", clazz.getSimpleName(), method, Arrays.toString(converters));
     }
+
+    @Override
+    public Class<T> getBuildableClass() {
+        return (Class<T>)clazz;
+    }
 }

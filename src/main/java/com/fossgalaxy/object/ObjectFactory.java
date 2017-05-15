@@ -9,4 +9,6 @@ interface ObjectFactory<T> {
     default T build(){ return build(new String[0]);}
 
     default String name(){ return "";}
+
+    default Class<T> getBuildableClass(){return null;}
 }

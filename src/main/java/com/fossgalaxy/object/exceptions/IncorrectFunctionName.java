@@ -8,8 +8,8 @@ public class IncorrectFunctionName extends ObjectCreatorException {
      *
      * @param message Message explaining what went wrong
      */
-    public IncorrectFunctionName(String s) {
-        super(s);
+    public IncorrectFunctionName(String message) {
+        super(message);
     }
 
 }

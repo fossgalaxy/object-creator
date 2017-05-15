@@ -229,11 +229,13 @@ public final class ObjectFinder<T> {
             try {
                 ObjectFactory<T> factory = buildFactory(objectClazz);
                 knownFactories.put(factory.name(), factory);
+//                if(!this.clazz.equals(factory.getBuildableClass()) && this.clazz.isAssignableFrom(factory.getBuildableClass())) {
+//                    converters.put(factory.getClass(), this::buildObject);
+//                }
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to create object " + objectClazz);
             }
         }
-
     }
 
     private ObjectFactory<T> buildFactory(Method method) {
@@ -363,7 +365,10 @@ public final class ObjectFinder<T> {
         return knownFactories.keySet();
     }
 
-
+    /**
+     * Builder object for an ObjectFinder
+     * @param <T> The type of objects you intend to build
+     */
     public static class Builder<T> {
         private final Class<T> clazz;
         private T[] array = null;
@@ -372,33 +377,61 @@ public final class ObjectFinder<T> {
         private String paramEnd = PARAM_END;
 
         /**
-         *
-         * @param clazz
+         * Constructor for the builder - takes the only required parameter
+         * @param clazz The Class of the type that the ObjectFinder will build
          */
         public Builder(Class<T> clazz) {
             this.clazz = clazz;
         }
 
+        /**
+         * Sets an array of type T. This can be used to recognise arguments of T[]
+         * and will add a new converter the the ObjectFinder for handling comma separated sets of values.
+         * @param array An Array of type T. The size isn't important
+         * @return Builder object for call chaining
+         */
         public Builder<T> setArray(T[] array) {
             this.array = array;
             return this;
         }
 
+        /**
+         * Sets the start parameter for the input Strings
+         * @param paramStart The character to use instead. Should be of length 1
+         * @return Builder object for call chaining
+         */
         public Builder<T> setParamStart(String paramStart) {
+            if(paramStart.length() != 1) throw new IllegalArgumentException("Length of paramStart must be 1");
             this.paramStart = paramStart;
             return this;
         }
 
+        /**
+         * Sets the parameter separator for the input Strings
+         * @param paramSeparator The character to use instead. Should be of length 1
+         * @return Builder object for call chaining
+         */
         public Builder<T> setParamSeparator(String paramSeparator) {
+            if(paramSeparator.length() != 1) throw new IllegalArgumentException("Length of paramSeparator must be 1");
             this.paramSeparator = paramSeparator;
             return this;
         }
 
+        /**
+         * Sets the end parameter marker for the input Strings
+         * @param paramEnd The character to use instead. Should be of length 1
+         * @return Builder object for call chaining
+         */
         public Builder<T> setParamEnd(String paramEnd) {
+            if(paramEnd.length() != 1) throw new IllegalArgumentException("Length of paramEnd must be 1");
             this.paramEnd = paramEnd;
             return this;
         }
 
+        /**
+         * Builds and returns the ObjectFinder of type <T>
+         * @return The ObjectFinder
+         */
         public ObjectFinder<T> build() {
             return new ObjectFinder<>(clazz, array, paramStart, paramSeparator, paramEnd);
         }
