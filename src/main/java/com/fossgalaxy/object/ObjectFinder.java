@@ -34,17 +34,15 @@ public final class ObjectFinder<T> {
     private final Map<String, List<RuntimeException>> exceptions;
     private final Class<T> clazz;
     private boolean hasScanned;
-    private final T[] array;
 
     private final String paramStart;
     private final String paramEnd;
     private final String paramSeparator;
 
-    private ObjectFinder(Class<T> clazz, T[] array, String paramStart, String paramSeparator, String paramEnd) {
+    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
-        this.array = array;
         this.hasScanned = false;
         this.exceptions = new HashMap<>();
         this.paramStart = paramStart;
@@ -52,7 +50,6 @@ public final class ObjectFinder<T> {
         this.paramEnd = paramEnd;
 
         buildConverters();
-
     }
 
     private String[] splitArgs(String args) {
@@ -82,38 +79,29 @@ public final class ObjectFinder<T> {
     }
 
     private void buildConverters() {
-        converters.put(String.class, Function.identity());
-        converters.put(String[].class, Converters::parseStringArray);
-
-        converters.put(Integer.class, Integer::parseInt);
-        converters.put(int.class, Integer::parseInt);
-        converters.put(int[].class, Converters::parseIntArray);
-        converters.put(Integer[].class, Converters::parseIntegerArray);
-
-        converters.put(Long.class, Long::parseLong);
-        converters.put(long.class, Long::parseLong);
-        converters.put(long[].class, Converters::parseLongArray);
-        converters.put(Long[].class, Converters::parseLongClassArray);
-
-        converters.put(Double.class, Double::parseDouble);
-        converters.put(double.class, Double::parseDouble);
-        converters.put(double[].class, Converters::parseDoubleArray);
-        converters.put(Double[].class, Converters::parseDoubleClassArray);
-
-        converters.put(Float.class, Float::parseFloat);
-        converters.put(float.class, Float::parseFloat);
-        converters.put(float[].class, Converters::parseFloatArray);
-        converters.put(Float[].class, Converters::parseFloatClassArray);
-
-        converters.put(Boolean.class, Boolean::parseBoolean);
-        converters.put(boolean.class, Boolean::parseBoolean);
-        converters.put(boolean[].class, Converters::parseBooleanArray);
-        converters.put(Boolean[].class, Converters::parseBooleanClassArray);
-
-        converters.put(clazz, this::buildObject);
-        if(array != null){
-            converters.put(array.getClass(), s -> Arrays.stream(s.split(",")).map(this::buildObject).toArray());
-        }
+        addConverter(String.class, Function.identity());
+        addConverter(String[].class, Converters::parseStringArray);
+        addConverter(Integer.class, Integer::parseInt);
+        addConverter(int.class, Integer::parseInt);
+        addConverter(int[].class, Converters::parseIntArray);
+        addConverter(Integer[].class, Converters::parseIntegerArray);
+        addConverter(Long.class, Long::parseLong);
+        addConverter(long.class, Long::parseLong);
+        addConverter(long[].class, Converters::parseLongArray);
+        addConverter(Long[].class, Converters::parseLongClassArray);
+        addConverter(Double.class, Double::parseDouble);
+        addConverter(double.class, Double::parseDouble);
+        addConverter(double[].class, Converters::parseDoubleArray);
+        addConverter(Double[].class, Converters::parseDoubleClassArray);
+        addConverter(Float.class, Float::parseFloat);
+        addConverter(float.class, Float::parseFloat);
+        addConverter(float[].class, Converters::parseFloatArray);
+        addConverter(Float[].class, Converters::parseFloatClassArray);
+        addConverter(Boolean.class, Boolean::parseBoolean);
+        addConverter(boolean.class, Boolean::parseBoolean);
+        addConverter(boolean[].class, Converters::parseBooleanArray);
+        addConverter(Boolean[].class, Converters::parseBooleanClassArray);
+        addConverter(clazz, this::buildObject);
     }
 
     /**
@@ -371,7 +359,6 @@ public final class ObjectFinder<T> {
      */
     public static class Builder<T> {
         private final Class<T> clazz;
-        private T[] array = null;
         private String paramStart = PARAM_START;
         private String paramSeparator = PARAM_SEPARATOR;
         private String paramEnd = PARAM_END;
@@ -384,16 +371,6 @@ public final class ObjectFinder<T> {
             this.clazz = clazz;
         }
 
-        /**
-         * Sets an array of type T. This can be used to recognise arguments of T[]
-         * and will add a new converter the the ObjectFinder for handling comma separated sets of values.
-         * @param array An Array of type T. The size isn't important
-         * @return Builder object for call chaining
-         */
-        public Builder<T> setArray(T[] array) {
-            this.array = array;
-            return this;
-        }
 
         /**
          * Sets the start parameter for the input Strings
@@ -433,7 +410,7 @@ public final class ObjectFinder<T> {
          * @return The ObjectFinder
          */
         public ObjectFinder<T> build() {
-            return new ObjectFinder<>(clazz, array, paramStart, paramSeparator, paramEnd);
+            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd);
         }
     }
 }
