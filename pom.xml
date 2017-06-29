@@ -4,7 +4,7 @@
 
     <groupId>com.fossgalaxy.util</groupId>
     <artifactId>object-creator</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <description>A project for creating objects at runtime from string based data</description>
     <parent>
         <groupId>com.fossgalaxy.common</groupId>
