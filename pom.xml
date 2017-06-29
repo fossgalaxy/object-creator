@@ -14,9 +14,6 @@
         <version>0.3</version>
     </parent>
 
-    <properties>
-        <fossgalaxy.owner.id>iggi</fossgalaxy.owner.id>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
