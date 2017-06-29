@@ -14,6 +14,7 @@
 
     <properties>
         <fossgalaxy.owner.id>iggi</fossgalaxy.owner.id>
+        <fossgalaxy.repo.id>object-creator</fossgalaxy.repo.id>
     </properties>
 
     <dependencies>
