@@ -12,6 +12,19 @@
         <version>0.3</version>
     </parent>
 
+    <developers>
+        <developer>
+            <id>webpigeon</id>
+            <name>Joseph Walton-Rivers</name>
+            <email>webpigeon@fossgalaxy.com</email>
+        </developer>
+        <developer>
+            <id>Piers</id>
+            <name>Piers R. Williams</name>
+            <email>solar_1992@hotmail.co.uk</email>
+        </developer>
+    </developers>
+
     <properties>
         <fossgalaxy.owner.id>iggi</fossgalaxy.owner.id>
         <fossgalaxy.repo.id>object-creator</fossgalaxy.repo.id>
