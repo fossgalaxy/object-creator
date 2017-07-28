@@ -1,9 +1,6 @@
 package com.fossgalaxy.object.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Created by piers on 13/04/17.
@@ -13,6 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD})
+@Repeatable(ParameterHolder.class)
 public @interface Parameter {
     /**
      * Specify the index of the parameter that this annotation refers to
