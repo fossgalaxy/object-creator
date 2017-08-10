@@ -180,10 +180,10 @@ public final class ObjectFinder<T> {
 
         for (Method method : methods) {
             int modifiers = method.getModifiers();
+            ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
+            String name = objectBuilder.value();
             if (!(Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers))) {
-                ObjectDefStatic objectBuilder = method.getDeclaredAnnotation(ObjectDefStatic.class);
-                String name = objectBuilder.value();
-                logger.info("Found: {}.{} annotated as {} ", method.getDeclaringClass(), method.getName(), name);
+
                 if (!Modifier.isStatic(modifiers)) {
                     logException(name, new NonStaticMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't static"));
                 }
@@ -192,6 +192,7 @@ public final class ObjectFinder<T> {
                 }
                 continue;
             }
+            logger.info("Found: {}.{} annotated as {} ", method.getDeclaringClass(), method.getName(), name);
 
             try {
                 ObjectFactory<T> factory = buildFactory(method);
