@@ -190,6 +190,12 @@ public final class ObjectFinder<T> {
                 if (!Modifier.isPublic(modifiers)) {
                     logException(name, new NonPublicMethodAnnotatedException("Method: " + method.getName() + " was annotated but wasn't public"));
                 }
+
+
+                continue;
+            }
+            if(!method.getReturnType().isAssignableFrom(clazz)){
+                logger.warn("Found: {}.{} annotated as {} but was returning {}", method.getDeclaringClass(), method.getName(), name, method.getReturnType());
                 continue;
             }
             logger.info("Found: {}.{} annotated as {} ", method.getDeclaringClass(), method.getName(), name);
