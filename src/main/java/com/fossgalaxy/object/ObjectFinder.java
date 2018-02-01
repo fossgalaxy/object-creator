@@ -39,7 +39,7 @@ public final class ObjectFinder<T> {
     private final String paramEnd;
     private final String paramSeparator;
 
-    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd) {
+    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd, boolean lazyScan) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
@@ -50,6 +50,9 @@ public final class ObjectFinder<T> {
         this.paramEnd = paramEnd;
 
         buildConverters();
+        if(!lazyScan){
+            scanForObjects();
+        }
     }
 
     private String[] splitArgs(String args) {
@@ -369,6 +372,7 @@ public final class ObjectFinder<T> {
         private String paramStart = PARAM_START;
         private String paramSeparator = PARAM_SEPARATOR;
         private String paramEnd = PARAM_END;
+        private boolean lazyScan = true;
 
         /**
          * Constructor for the builder - takes the only required parameter
@@ -412,12 +416,17 @@ public final class ObjectFinder<T> {
             return this;
         }
 
+        public Builder<T> scanNow(){
+            this.lazyScan = false;
+            return this;
+        }
+
         /**
          * Builds and returns the ObjectFinder of type <T>
          * @return The ObjectFinder
          */
         public ObjectFinder<T> build() {
-            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd);
+            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd,lazyScan);
         }
     }
 }
