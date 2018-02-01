@@ -1,0 +1,13 @@
+# Changes
+
+# Version 1.3
+* Fix bug where static methods with incorrect return types being accepted as factories
+
+# Version 1.2
+* Fixed issue with some factory methods not being logged when detected
+
+# Version 1.1
+* Allowed multiple parameter annotations on a class
+
+# Version 1.0
+* Initial Release
