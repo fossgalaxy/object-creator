@@ -10,6 +10,7 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,9 @@ public final class ObjectFinder<T> {
     private final String paramEnd;
     private final String paramSeparator;
 
-    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd, boolean lazyScan) {
+    private final FilterBuilder filterBuilder;
+
+    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd, boolean lazyScan, FilterBuilder filterBuilder) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
@@ -48,6 +51,7 @@ public final class ObjectFinder<T> {
         this.paramStart = paramStart;
         this.paramSeparator = paramSeparator;
         this.paramEnd = paramEnd;
+        this.filterBuilder = filterBuilder;
 
         buildConverters();
         if(!lazyScan){
@@ -170,6 +174,7 @@ public final class ObjectFinder<T> {
                 .setUrls(ClasspathHelper.forJavaClassPath())
                 .setScanners(new MethodAnnotationsScanner(), new SubTypesScanner(), new TypeAnnotationsScanner())
                 .setExpandSuperTypes(false)
+                .filterInputsBy(filterBuilder)
         );
 
         scanForConstructors(reflections);
@@ -373,6 +378,7 @@ public final class ObjectFinder<T> {
         private String paramSeparator = PARAM_SEPARATOR;
         private String paramEnd = PARAM_END;
         private boolean lazyScan = true;
+        private Collection<String> packagesToScan = new ArrayList<>();
 
         /**
          * Constructor for the builder - takes the only required parameter
@@ -421,12 +427,26 @@ public final class ObjectFinder<T> {
             return this;
         }
 
+        public Builder<T> addPackage(String packageToAdd){
+            packagesToScan.add(packageToAdd);
+            return this;
+        }
+
+        public Builder<T> addPackage(String... packagesToAdd){
+            this.packagesToScan.addAll(Arrays.asList(packagesToAdd));
+            return this;
+        }
+
         /**
          * Builds and returns the ObjectFinder of type <T>
          * @return The ObjectFinder
          */
         public ObjectFinder<T> build() {
-            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd,lazyScan);
+            FilterBuilder filterBuilder = new FilterBuilder();
+            if(!packagesToScan.isEmpty()){
+                packagesToScan.forEach(filterBuilder::includePackage);
+            }
+            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd,lazyScan,filterBuilder);
         }
     }
 }
