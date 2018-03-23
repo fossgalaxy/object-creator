@@ -4,7 +4,7 @@
 
     <groupId>com.fossgalaxy.util</groupId>
     <artifactId>object-creator</artifactId>
-    <version>1.5</version>
+    <version>1.6-SNAPSHOT</version>
     <description>A project for creating objects at runtime from string based data</description>
     <parent>
         <groupId>com.fossgalaxy.common</groupId>
@@ -34,7 +34,7 @@
         <connection>scm:git:git@git.fossgalaxy.com:iggi/object-creator.git</connection>
         <url>scm:git:git@git.fossgalaxy.com:iggi/object-creator.git</url>
         <developerConnection>scm:git:git@git.fossgalaxy.com:iggi/object-creator.git</developerConnection>
-        <tag>v1.5</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
