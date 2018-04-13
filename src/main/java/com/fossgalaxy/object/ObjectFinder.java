@@ -14,6 +14,7 @@ import org.reflections.util.FilterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
@@ -26,23 +27,23 @@ import java.util.function.Function;
  * @param <T> The type of object that you wish to instantiate
  */
 public final class ObjectFinder<T> {
-    private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
     public static final String PARAM_START = "[";
     public static final String PARAM_END = "]";
     public static final String PARAM_SEPARATOR = ":";
+    private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
     private final Map<Class<?>, Function<String, ?>> converters;
     private final Map<String, ObjectFactory<T>> knownFactories;
     private final Map<String, List<RuntimeException>> exceptions;
     private final Class<T> clazz;
-    private boolean hasScanned;
-
     private final String paramStart;
     private final String paramEnd;
     private final String paramSeparator;
-
     private final FilterBuilder filterBuilder;
+    private final boolean cache;
+    private final String cacheFilename;
+    private boolean hasScanned;
 
-    private ObjectFinder(Class<T> clazz,String paramStart, String paramSeparator, String paramEnd, boolean lazyScan, FilterBuilder filterBuilder) {
+    private ObjectFinder(Class<T> clazz, String paramStart, String paramSeparator, String paramEnd, boolean lazyScan, FilterBuilder filterBuilder, boolean cache, String cacheFilename) {
         this.converters = new HashMap<>();
         this.knownFactories = new HashMap<>();
         this.clazz = clazz;
@@ -52,9 +53,11 @@ public final class ObjectFinder<T> {
         this.paramSeparator = paramSeparator;
         this.paramEnd = paramEnd;
         this.filterBuilder = filterBuilder;
+        this.cache = cache;
+        this.cacheFilename = cacheFilename;
 
         buildConverters();
-        if(!lazyScan){
+        if (!lazyScan) {
             scanForObjects();
         }
     }
@@ -169,16 +172,29 @@ public final class ObjectFinder<T> {
         if (hasScanned) {
             return;
         }
+        Reflections reflections;
 
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forJavaClassPath())
-                .setScanners(new MethodAnnotationsScanner(), new SubTypesScanner(), new TypeAnnotationsScanner())
-                .setExpandSuperTypes(false)
-                .filterInputsBy(filterBuilder)
-        );
+        File file = new File(cacheFilename);
+        if (cache && file.exists()) {
+            // Does cache file exist?
+            reflections = new Reflections().collect(file);
+        } else {
+            reflections = new Reflections(new ConfigurationBuilder()
+                    .setUrls(ClasspathHelper.forJavaClassPath())
+                    .setScanners(new MethodAnnotationsScanner(), new SubTypesScanner(), new TypeAnnotationsScanner())
+                    .setExpandSuperTypes(false)
+                    .filterInputsBy(filterBuilder)
+            );
+
+            // Save the metadata!
+            if(cache){
+                reflections.save(cacheFilename);
+            }
+        }
 
         scanForConstructors(reflections);
         scanForStaticMethods(reflections);
+
 
         hasScanned = true;
     }
@@ -202,7 +218,7 @@ public final class ObjectFinder<T> {
 
                 continue;
             }
-            if(!method.getReturnType().isAssignableFrom(clazz)){
+            if (!method.getReturnType().isAssignableFrom(clazz)) {
                 logger.warn("Found: {}.{} annotated as {} but was returning {}", method.getDeclaringClass(), method.getName(), name, method.getReturnType());
                 continue;
             }
@@ -370,6 +386,7 @@ public final class ObjectFinder<T> {
 
     /**
      * Builder object for an ObjectFinder
+     *
      * @param <T> The type of objects you intend to build
      */
     public static class Builder<T> {
@@ -379,9 +396,12 @@ public final class ObjectFinder<T> {
         private String paramEnd = PARAM_END;
         private boolean lazyScan = true;
         private Collection<String> packagesToScan = new ArrayList<>();
+        private boolean cache = false;
+        private String cacheFilename = "";
 
         /**
          * Constructor for the builder - takes the only required parameter
+         *
          * @param clazz The Class of the type that the ObjectFinder will build
          */
         public Builder(Class<T> clazz) {
@@ -391,62 +411,72 @@ public final class ObjectFinder<T> {
 
         /**
          * Sets the start parameter for the input Strings
+         *
          * @param paramStart The character to use instead. Should be of length 1
          * @return Builder object for call chaining
          */
         public Builder<T> setParamStart(String paramStart) {
-            if(paramStart.length() != 1) throw new IllegalArgumentException("Length of paramStart must be 1");
+            if (paramStart.length() != 1) throw new IllegalArgumentException("Length of paramStart must be 1");
             this.paramStart = paramStart;
             return this;
         }
 
         /**
          * Sets the parameter separator for the input Strings
+         *
          * @param paramSeparator The character to use instead. Should be of length 1
          * @return Builder object for call chaining
          */
         public Builder<T> setParamSeparator(String paramSeparator) {
-            if(paramSeparator.length() != 1) throw new IllegalArgumentException("Length of paramSeparator must be 1");
+            if (paramSeparator.length() != 1) throw new IllegalArgumentException("Length of paramSeparator must be 1");
             this.paramSeparator = paramSeparator;
             return this;
         }
 
         /**
          * Sets the end parameter marker for the input Strings
+         *
          * @param paramEnd The character to use instead. Should be of length 1
          * @return Builder object for call chaining
          */
         public Builder<T> setParamEnd(String paramEnd) {
-            if(paramEnd.length() != 1) throw new IllegalArgumentException("Length of paramEnd must be 1");
+            if (paramEnd.length() != 1) throw new IllegalArgumentException("Length of paramEnd must be 1");
             this.paramEnd = paramEnd;
             return this;
         }
 
-        public Builder<T> scanNow(){
+        public Builder<T> scanNow() {
             this.lazyScan = false;
             return this;
         }
 
-        public Builder<T> addPackage(String packageToAdd){
+        public Builder<T> addPackage(String packageToAdd) {
             packagesToScan.add(packageToAdd);
             return this;
         }
 
-        public Builder<T> addPackage(String... packagesToAdd){
+        public Builder<T> addPackage(String... packagesToAdd) {
             this.packagesToScan.addAll(Arrays.asList(packagesToAdd));
+            return this;
+        }
+
+        public Builder<T> setCache(String filename) {
+            this.cache = true;
+            this.cacheFilename = filename;
             return this;
         }
 
         /**
          * Builds and returns the ObjectFinder of type <T>
+         *
          * @return The ObjectFinder
          */
         public ObjectFinder<T> build() {
             FilterBuilder filterBuilder = new FilterBuilder();
-            if(!packagesToScan.isEmpty()){
+            if (!packagesToScan.isEmpty()) {
                 packagesToScan.forEach(filterBuilder::includePackage);
             }
-            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd,lazyScan,filterBuilder);
+            return new ObjectFinder<>(clazz, paramStart, paramSeparator, paramEnd, lazyScan, filterBuilder, cache, cacheFilename);
         }
     }
 }

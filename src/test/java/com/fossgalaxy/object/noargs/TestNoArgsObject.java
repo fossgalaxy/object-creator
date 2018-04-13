@@ -15,7 +15,7 @@ public class TestNoArgsObject {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinder.Builder<>(NoArgsObject.class).build();
+        finder = new ObjectFinder.Builder<>(NoArgsObject.class).setCache("cache.xml").build();
     }
 
     @Test
