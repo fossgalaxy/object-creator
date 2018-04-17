@@ -18,7 +18,7 @@ public class TestObjectFinder {
 
     @BeforeClass
     public static void setup() {
-        finder = new ObjectFinder.Builder<>(TestObject.class).setCache("cache.xml").build();
+        finder = new ObjectFinder.Builder<>(TestObject.class).build();
     }
 
     @Test

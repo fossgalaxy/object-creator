@@ -11,13 +11,18 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+import org.reflections.vfs.SystemDir;
+import org.reflections.vfs.Vfs;
+import org.reflections.vfs.ZipDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.*;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.jar.JarFile;
 
 /**
  * Created by piers on 13/04/17.
@@ -173,7 +178,7 @@ public final class ObjectFinder<T> {
             return;
         }
         Reflections reflections;
-
+        System.out.println(Vfs.getDefaultUrlTypes());
         File file = new File(cacheFilename);
         if (cache && file.exists()) {
             // Does cache file exist?

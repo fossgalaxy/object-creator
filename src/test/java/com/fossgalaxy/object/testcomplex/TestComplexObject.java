@@ -15,7 +15,7 @@ public class TestComplexObject {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinder.Builder<>(ComplexTestObject.class).setCache("cache.xml").build();
+        finder = new ObjectFinder.Builder<>(ComplexTestObject.class).build();
     }
 
     @Test

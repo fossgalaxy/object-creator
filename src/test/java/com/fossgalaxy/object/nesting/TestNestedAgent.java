@@ -16,7 +16,7 @@ public class TestNestedAgent {
 
     @BeforeClass
     public static void setup(){
-        finder = new ObjectFinder.Builder<>(Agent.class).setCache("cache.xml").build();
+        finder = new ObjectFinder.Builder<>(Agent.class).build();
     }
 
     @Test

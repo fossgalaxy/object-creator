@@ -14,7 +14,7 @@ public class TestMissingConverter {
 
     @BeforeClass
     public static void setup() {
-        finder = new ObjectFinder.Builder<>(TestMissingConverterObject.class).setCache("cache.xml").build();
+        finder = new ObjectFinder.Builder<>(TestMissingConverterObject.class).build();
     }
 
     @Test(expected = NoConverterInstalledException.class)
