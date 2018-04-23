@@ -19,4 +19,9 @@ public class TestTagObject {
     public static TestTagObject getArray(String data, String suffix){
         return new TestTagObject(data + suffix);
     }
+
+    @ObjectDefStatic("TestTag")
+    public static TestTagObject getArrays(String data, String suffix){
+        return new TestTagObject(data + suffix);
+    }
 }

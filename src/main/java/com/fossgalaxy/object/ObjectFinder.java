@@ -11,18 +11,14 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import org.reflections.vfs.SystemDir;
 import org.reflections.vfs.Vfs;
-import org.reflections.vfs.ZipDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.*;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
-import java.util.jar.JarFile;
 
 /**
  * Created by piers on 13/04/17.
@@ -168,12 +164,12 @@ public final class ObjectFinder<T> {
         Map<Integer, ObjectFactory<T>> factoryMap = knownFactories.get(name);
 
 
-        if (factoryMap== null) {
+        if (factoryMap == null) {
             throw new IllegalArgumentException("Unknown factory type: " + name);
         }
         ObjectFactory<T> factory = factoryMap.get(args.length);
 
-        if(factory == null){
+        if (factory == null) {
             throw new IllegalArgumentException("Unknown number of parameters for: " + name + " - " + args.length);
         }
 
@@ -199,7 +195,7 @@ public final class ObjectFinder<T> {
             );
 
             // Save the metadata!
-            if(cache){
+            if (cache) {
                 reflections.save(cacheFilename);
             }
         }
@@ -238,10 +234,20 @@ public final class ObjectFinder<T> {
 
             try {
                 ObjectFactory<T> factory = buildFactory(method);
-                knownFactories.computeIfAbsent(factory.name(), x -> new HashMap<>()).put(factory.getNumberOfArguments(), factory);
+                addFactory(factory);
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to parse static method: " + method.getDeclaringClass() + "->" + method.getName());
             }
+        }
+    }
+
+    private void addFactory(ObjectFactory<T> factory) {
+        Map<Integer, ObjectFactory<T>> factories = knownFactories.computeIfAbsent(factory.name(), x -> new HashMap<>());
+        String key = factory.name();
+        if(factories.containsKey(factory.getNumberOfArguments())){
+            logger.error("Found duplicate key and number of arguments: ",  key);
+        }else {
+            factories.put(factory.getNumberOfArguments(), factory);
         }
     }
 
@@ -259,7 +265,7 @@ public final class ObjectFinder<T> {
 
             try {
                 ObjectFactory<T> factory = buildFactory(objectClazz);
-                knownFactories.computeIfAbsent(factory.name(), x-> new HashMap<>()).put(factory.getNumberOfArguments(), factory);
+                addFactory(factory);
 
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to create object " + objectClazz);
