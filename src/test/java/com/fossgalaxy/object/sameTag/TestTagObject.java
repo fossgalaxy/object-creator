@@ -1,13 +1,20 @@
 package com.fossgalaxy.object.sameTag;
 
+import com.fossgalaxy.object.annotations.ObjectDef;
 import com.fossgalaxy.object.annotations.ObjectDefStatic;
 
 public class TestTagObject {
 
     private final String data;
 
+    @ObjectDef("TestTagObject")
     public TestTagObject(String data) {
         this.data = data;
+    }
+
+    @ObjectDef("TestTagObject")
+    public TestTagObject() {
+        this.data = "";
     }
 
     @ObjectDefStatic("TestTag")

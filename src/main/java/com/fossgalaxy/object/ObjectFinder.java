@@ -264,8 +264,8 @@ public final class ObjectFinder<T> {
             logger.info("Found: {}", objectClazz.getCanonicalName());
 
             try {
-                ObjectFactory<T> factory = buildFactory(objectClazz);
-                addFactory(factory);
+                List<ObjectFactory<T>> factories = buildFactory(objectClazz);
+                factories.forEach(this::addFactory);
 
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to create object " + objectClazz);
@@ -281,15 +281,15 @@ public final class ObjectFinder<T> {
         return new MethodFactory<>(method.getDeclaringClass(), method, convertersInst, name);
     }
 
-    private ObjectFactory<T> buildFactory(Class<? extends T> objectClazz) {
-        Constructor<?> bestMatch = null;
+    private List<ObjectFactory<T>> buildFactory(Class<? extends T> objectClazz) {
+        List<ObjectFactory<T>> factories = new ArrayList<>();
 
         Constructor<?>[] constructors = objectClazz.getConstructors();
         for (Constructor<?> constructor : constructors) {
             ObjectDef builder = constructor.getAnnotation(ObjectDef.class);
             if (builder == null) {
                 if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
-                    bestMatch = constructor;
+                    factories.add(new ConstructorFactory<>(objectClazz, constructor, null));
                 }
             } else {
                 String name = "".equals(builder.value()) ? objectClazz.getSimpleName() : builder.value();
@@ -298,14 +298,11 @@ public final class ObjectFinder<T> {
 
                 Function<String, ?>[] convertersInst = getConverters(objectClazz, constructor.getParameterTypes(), parameters, name);
 
-                return new ConstructorFactory<>(objectClazz, constructor, convertersInst, name);
+                factories.add(new ConstructorFactory<>(objectClazz, constructor, convertersInst, name));
             }
         }
 
-        if (bestMatch == null) {
-            throw new IllegalArgumentException("You must either annotate a constructor or provide a public no-args constructor");
-        }
-        return new ConstructorFactory<>(objectClazz, bestMatch, null);
+        return factories;
     }
 
     private HashMap<Integer, Parameter> getParameterMap(Parameter[] parameters) {

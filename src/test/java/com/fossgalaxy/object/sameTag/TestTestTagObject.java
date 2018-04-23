@@ -26,4 +26,13 @@ public class TestTestTagObject {
         TestTagObject object = finder.buildObject("TestTag", "Data", "Suffix");
         assertNotNull(object);
     }
+
+    @Test
+    public void testConstructors(){
+        TestTagObject object = finder.buildObject("TestTagObject");
+        assertNotNull(object);
+        object = finder.buildObject("TestTagObject", "Data");
+        assertNotNull(object);
+
+    }
 }
