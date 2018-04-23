@@ -67,4 +67,9 @@ private static final Logger logger = LoggerFactory.getLogger(MethodFactory.class
     public Class<T> getBuildableClass() {
         return (Class<T>)clazz;
     }
+
+    @Override
+    public int getNumberOfArguments() {
+        return (converters == null ) ? 0 : converters.length;
+    }
 }

@@ -37,7 +37,7 @@ public final class ObjectFinder<T> {
     public static final String PARAM_SEPARATOR = ":";
     private static final Logger logger = LoggerFactory.getLogger(ObjectFinder.class);
     private final Map<Class<?>, Function<String, ?>> converters;
-    private final Map<String, ObjectFactory<T>> knownFactories;
+    private final Map<String, Map<Integer, ObjectFactory<T>>> knownFactories;
     private final Map<String, List<RuntimeException>> exceptions;
     private final Class<T> clazz;
     private final String paramStart;
@@ -165,9 +165,16 @@ public final class ObjectFinder<T> {
             }
         }
 
-        ObjectFactory<T> factory = knownFactories.get(name);
-        if (factory == null) {
+        Map<Integer, ObjectFactory<T>> factoryMap = knownFactories.get(name);
+
+
+        if (factoryMap== null) {
             throw new IllegalArgumentException("Unknown factory type: " + name);
+        }
+        ObjectFactory<T> factory = factoryMap.get(args.length);
+
+        if(factory == null){
+            throw new IllegalArgumentException("Unknown number of parameters for: " + name + " - " + args.length);
         }
 
         return factory.build(args);
@@ -231,7 +238,7 @@ public final class ObjectFinder<T> {
 
             try {
                 ObjectFactory<T> factory = buildFactory(method);
-                knownFactories.put(factory.name(), factory);
+                knownFactories.computeIfAbsent(factory.name(), x -> new HashMap<>()).put(factory.getNumberOfArguments(), factory);
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to parse static method: " + method.getDeclaringClass() + "->" + method.getName());
             }
@@ -252,10 +259,8 @@ public final class ObjectFinder<T> {
 
             try {
                 ObjectFactory<T> factory = buildFactory(objectClazz);
-                knownFactories.put(factory.name(), factory);
-//                if(!this.clazz.equals(factory.getBuildableClass()) && this.clazz.isAssignableFrom(factory.getBuildableClass())) {
-//                    converters.put(factory.getClass(), this::buildObject);
-//                }
+                knownFactories.computeIfAbsent(factory.name(), x-> new HashMap<>()).put(factory.getNumberOfArguments(), factory);
+
             } catch (IllegalArgumentException iae) {
                 logger.error("Failed to create object " + objectClazz);
             }

@@ -71,4 +71,9 @@ class ConstructorFactory<T> implements ObjectFactory<T> {
     public Class<T> getBuildableClass(){
         return (Class<T>) clazz;
     }
+
+    @Override
+    public int getNumberOfArguments() {
+        return (converters == null ) ? 0 : converters.length;
+    }
 }

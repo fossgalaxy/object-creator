@@ -11,4 +11,6 @@ interface ObjectFactory<T> {
     default String name(){ return "";}
 
     default Class<T> getBuildableClass(){return null;}
+
+    int getNumberOfArguments();
 }
